@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <title>Recensioni Insegnante</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin:0; padding:0; display:flex; }
+    .sidebar { width:300px; padding:20px; background:#f5f5f5; }
+    .sidebar img { width:100%; border-radius:50%; }
+    .sidebar h2 { margin:10px 0 5px; }
+    .rating { font-size: 1.2em; color: #FFD700; }
+    .content { flex:1; padding:20px; }
+    .alert { background:#f8d7da; color:#721c24; padding:15px; border-radius:5px; margin-bottom:20px; }
+    .reviews { display:grid; grid-template-columns:repeat(auto-fill,minmax(250px,1fr)); gap:15px; }
+    .card { border:1px solid #ddd; padding:10px; border-radius:5px; }
+    .card-header { display:flex; align-items:center; gap:10px; }
+    .avatar { width:40px; height:40px; border-radius:50%; object-fit:cover; }
+    .card-title { font-weight:bold; margin:0; }
+.card-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+    .card .stars { color:#FFD700; margin-left:auto; }
+    .card .meta { font-size:0.75em; color:#777; }
+    .card .subject { font-size:0.9em; margin:5px 0; }
+    .card .subject b { font-weight:normal; }
+    .card p { margin:5px 0; }
+    #modal { display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.5); justify-content:center; align-items:center; }
+    #modal .box { background:#fff; padding:20px; border-radius:5px; width:300px; }
+    #modal label { display:block; margin:10px 0 5px; }
+    #modal select, #modal input, #modal textarea { width:100%; padding:5px; }
+    #modal .actions { text-align:right; margin-top:15px; }
+    .star-rating { display:flex; gap:5px; cursor:pointer; margin-bottom:10px; }
+    .star { font-size:1.5em; color:#ddd; }
+    .star.selected, .star.hover { color:#FFD700; }
+    button { cursor:pointer; padding:5px 10px; border:none; background:#007bff; color:#fff; border-radius:3px; }
+    button:disabled { background:#aaa; }
+.reviews {
+  margin-top: 16px;
+}
+  </style>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+</head>
+<body>
+
+  <div class="sidebar">
+    <img src="https://source.unsplash.com/featured/?teacher" alt="Foto insegnante" />
+    <h2>Andrea Mirarchi</h2>
+    <div class="rating" id="avgRating">★☆☆☆☆ (0)</div>
+  </div>
+
+  <div class="content">
+    <div id="alert" class="alert">
+      Per lasciare una recensione bisogna aver ricevuto il link del professore.
+    </div>
+    <button id="addBtn" style="display:none;">Lascia recensione</button>
+    <div class="reviews" id="reviewsContainer"></div>
+  </div>
+
+  <div id="modal">
+    <div class="box">
+      <h3>Nuova recensione</h3>
+      <label>Nome</label>
+      <input id="revName" type="text" />
+      <label>Stelle</label>
+      <div class="star-rating" id="starInput">
+        <span class="star" data-value="1">★</span>
+        <span class="star" data-value="2">★</span>
+        <span class="star" data-value="3">★</span>
+        <span class="star" data-value="4">★</span>
+        <span class="star" data-value="5">★</span>
+      </div>
+      <label>Materia</label>
+      <select id="revSubject">
+        <option value="C">Programmazione C</option>
+        <option value="C++">Programmazione C++</option>
+        <option value="Python">Programmazione Python</option>
+        <option value="SQL">Programmazione SQL</option>
+        <option value="HTML+CSS">Programmazione HTML+CSS</option>
+        <option value="JS">Programmazione JavaScript</option>
+        <option value="Pacchetto Office">Pacchetto Office</option>
+      </select>
+      <div id="officeChoice" style="display:none;">
+        <label>Programma Office</label>
+        <select id="officeApp">
+          <option>Word</option>
+          <option>Excel</option>
+          <option>PowerPoint</option>
+          <option>Outlook</option>
+        </select>
+      </div>
+      <label>Recensione</label>
+      <textarea id="revText" rows="4"></textarea>
+      <div class="actions">
+        <button onclick="closeModal()" type="button">Annulla</button>
+        <button onclick="submitReview()" type="button">Invia</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Configura qui il tuo Firebase
+    const firebaseConfig = {
+  apiKey: "AIzaSyCbMNIYtE0h3164ec0DsORRWRI3kSmCuoY",
+  authDomain: "teacherandreamirarchi.firebaseapp.com",
+  projectId: "teacherandreamirarchi",
+  storageBucket: "teacherandreamirarchi.firebasestorage.app",
+  messagingSenderId: "527763608339",
+  appId: "1:527763608339:web:f8b3bbdb95f166b4cb40e6",
+  measurementId: "G-VQHZPB3C2B"
+    };
+
+    // Inizializza Firebase e Firestore
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    // Variabili globali
+    let codice = null;
+    const alertBox = document.getElementById('alert');
+    const addBtn = document.getElementById('addBtn');
+    const reviewsContainer = document.getElementById('reviewsContainer');
+
+    // Prende codice da URL (query ?codice= o hash #codice)
+    function getCodeFromURL() {
+      const params = new URLSearchParams(window.location.search);
+      let code = params.get('codice');
+      if (code) return code;
+      if (window.location.hash.length > 1) return window.location.hash.substring(1);
+      if (window.location.search.length > 1) return window.location.search.substring(1);
+      return null;
+    }
+
+    // Controlla se codice esiste e non usato
+    async function checkCodeValidity(code) {
+      try {
+        const docRef = db.collection('codici').doc(code);
+        const docSnap = await docRef.get();
+        if (!docSnap.exists) return false;
+        const data = docSnap.data();
+        return data.used === false;
+      } catch(e) {
+        console.error("Errore controllo codice:", e);
+        return false;
+      }
+    }
+
+    // Segna codice come usato
+    async function markCodeUsed(code) {
+      try {
+        await db.collection('codici').doc(code).update({used:true});
+      } catch(e) {
+        console.error("Errore segnatura codice usato:", e);
+      }
+    }
+
+    // Carica e mostra recensioni
+    async function loadReviews() {
+      try {
+        const snap = await db.collection('recensioni').orderBy('timestamp','desc').get();
+        reviewsContainer.innerHTML = '';
+        let sum = 0, count = 0;
+        snap.forEach(doc => {
+          const r = doc.data();
+          sum += r.stars;
+          count++;
+          const date = r.timestamp ? r.timestamp.toDate() : new Date();
+          const card = document.createElement('div');
+          card.className = 'card';
+          card.innerHTML = `
+  <div class="card-header">
+    <img class="avatar" src="https://upload.wikimedia.org/wikipedia/commons/8/89/Portrait_Placeholder.png" alt="avatar">
+    <div>
+      <h4 class="card-title" style="margin:0;">${r.name}</h4>
+      <div class="meta">${date.toLocaleString('it-IT', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false })}</div>
+    </div>
+  </div>
+    <div class="stars" style="margin-left:auto;">
+      ${'★'.repeat(r.stars)}${'☆'.repeat(5 - r.stars)}
+    </div>
+  <div><strong>Materia:</strong> ${r.subject}</div>
+  <p>${r.text}</p>
+  <div style="font-size:0.7em; color:#888;">ID: ${doc.id}</div>
+`;
+          reviewsContainer.appendChild(card);
+        });
+        const avg = count ? (sum/count).toFixed(1) : 0;
+        document.getElementById('avgRating').innerText =
+          '★'.repeat(Math.round(avg)) + '☆'.repeat(5-Math.round(avg)) + ` (${count})`;
+      } catch(e) {
+        console.error("Errore caricamento recensioni:", e);
+        reviewsContainer.innerHTML = '<p>Impossibile caricare le recensioni.</p>';
+      }
+    }
+
+    // Inizializza pagina
+    async function init() {
+      codice = getCodeFromURL();
+      if (!codice) {
+        alertBox.style.display = 'block';
+        addBtn.style.display = 'none';
+      } else {
+        const valid = await checkCodeValidity(codice);
+        if (valid) {
+          alertBox.style.display = 'none';
+          addBtn.style.display = 'inline-block';
+        } else {
+          alertBox.style.display = 'block';
+          addBtn.style.display = 'none';
+        }
+      }
+      await loadReviews();
+    }
+
+    init();
+
+    // Gestione modal
+    addBtn.onclick = () => document.getElementById('modal').style.display = 'flex';
+    function closeModal() {
+      document.getElementById('modal').style.display = 'none';
+    }
+    window.closeModal = closeModal;
+
+    // Gestione stelle cliccabili
+    const stars = document.querySelectorAll('#starInput .star');
+    let selectedStars = 0;
+    stars.forEach(star => {
+      star.addEventListener('mouseover', () => {
+        const val = parseInt(star.dataset.value);
+        stars.forEach(s => s.classList.toggle('hover', parseInt(s.dataset.value) <= val));
+      });
+      star.addEventListener('mouseout', () => {
+        stars.forEach(s => s.classList.remove('hover'));
+      });
+      star.addEventListener('click', () => {
+        selectedStars = parseInt(star.dataset.value);
+        stars.forEach(s => s.classList.toggle('selected', parseInt(s.dataset.value) <= selectedStars));
+      });
+    });
+
+    // Mostra sotto-menu Pacchetto Office
+    document.getElementById('revSubject').onchange = function() {
+      document.getElementById('officeChoice').style.display = this.value === 'Pacchetto Office' ? 'block' : 'none';
+    };
+
+    // Invia recensione
+    async function submitReview() {
+      if (!codice) {
+        alert('Codice mancante o non valido.');
+        return;
+      }
+      if (selectedStars < 1) {
+        alert('Seleziona almeno una stella.');
+        return;
+      }
+      const name = document.getElementById('revName').value.trim();
+      if (!name) {
+        alert('Inserisci il nome.');
+        return;
+      }
+      let subject = document.getElementById('revSubject').value;
+      if (subject === 'Pacchetto Office') {
+        subject += ': ' + document.getElementById('officeApp').value;
+      }
+      const text = document.getElementById('revText').value.trim();
+
+      try {
+        await db.collection('recensioni').add({
+          name,
+          stars: selectedStars,
+          subject,
+          text,
+          timestamp: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        await markCodeUsed(codice);
+        alert('Recensione inviata con successo!');
+        closeModal();
+        addBtn.style.display = 'none';
+        alertBox.style.display = 'block';
+        await loadReviews();
+      } catch(e) {
+        console.error('Errore invio recensione:', e);
+        alert('Errore durante l\'invio, riprova.');
+      }
+    }
+    window.submitReview = submitReview;
+  </script>
+
+</body>
+</html>
