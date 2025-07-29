@@ -91,6 +91,8 @@
           <option>Access</option>
         </select>
       </div>
+      <label>Quante lezioni hai fatto?</label>
+      <input id="lessions" type="number" />
       <label>Recensione</label>
       <textarea id="revText" rows="4"></textarea>
       <div class="actions">
@@ -179,7 +181,7 @@
     <div class="stars" style="margin-left:auto;">
       ${'★'.repeat(r.stars)}${'☆'.repeat(5 - r.stars)}
     </div>
-  <div><strong>Materia:</strong> ${r.subject}</div>
+  <div><strong>Materia:</strong> ${r.subject} (${r.lessions} lezioni)</div>
   <p>${r.text}</p>
   <div style="font-size:0.7em; color:#888;">ID: ${doc.id}</div>
 `;
@@ -259,6 +261,11 @@
         alert('Inserisci il nome.');
         return;
       }
+      const lessions = document.getElementById('lessions').value.trim();
+      if (!lessions) {
+        alert('Inserisci il nome.');
+        return;
+      }
       let subject = document.getElementById('revSubject').value;
       if (subject === 'Pacchetto Office') {
         subject += ': ' + document.getElementById('officeApp').value;
@@ -271,7 +278,8 @@
           stars: selectedStars,
           subject,
           text,
-          timestamp: firebase.firestore.FieldValue.serverTimestamp()
+          timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+          lessions
         });
         await markCodeUsed(codice);
         alert('Recensione inviata con successo!');
