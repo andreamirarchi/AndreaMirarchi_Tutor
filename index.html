@@ -16,11 +16,11 @@
     .card-header { display:flex; align-items:center; gap:10px; }
     .avatar { width:40px; height:40px; border-radius:50%; object-fit:cover; }
     .card-title { font-weight:bold; margin:0; }
-.card-header {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
+    .card-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
     .card .stars { color:#FFD700; margin-left:auto; }
     .card .meta { font-size:0.75em; color:#777; }
     .card .subject { font-size:0.9em; margin:5px 0; }
@@ -36,9 +36,34 @@
     .star.selected, .star.hover { color:#FFD700; }
     button { cursor:pointer; padding:5px 10px; border:none; background:#007bff; color:#fff; border-radius:3px; }
     button:disabled { background:#aaa; }
-.reviews {
-  margin-top: 16px;
-}
+    .reviews {
+      margin-top: 16px;
+    }
+    @media (max-width: 768px) {
+  body {
+    flex-direction: column;
+  }
+
+  .sidebar {
+    width: 100%;
+    order: 1;
+    text-align: center;
+  }
+
+  .content {
+    width: 100%;
+    order: 2;
+  }
+
+  .reviews {
+    grid-template-columns: 1fr; /* recensioni a una colonna */
+  }
+
+  .sidebar img {
+    max-width: 150px;
+    margin: 0 auto;
+  }
+ }
   </style>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
