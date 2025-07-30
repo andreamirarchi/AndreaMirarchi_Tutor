@@ -283,8 +283,12 @@
       }
       const name = document.getElementById('revName').value.trim();
       const lessions = document.getElementById('lessions').value.trim();
-      if (!lessions) {
+      if (!revName) {
         alert('Inserisci il nome.');
+        return;
+      }
+      if (!lessions) {
+        alert('Inserisci il numero di lezioni.');
         return;
       }
       let subject = document.getElementById('revSubject').value;
