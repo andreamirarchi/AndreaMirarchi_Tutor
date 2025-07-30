@@ -20,8 +20,8 @@
       display: flex;
       align-items: center;
       gap: 10px;
-    }/*#FFD700*/
-    .card .stars { color:#80ffc4; margin-left:auto; }
+    }
+    .card .stars { color:#FFD700; margin-left:auto; }
     .card .meta { font-size:0.75em; color:#777; }
     .card .subject { font-size:0.9em; margin:5px 0; }
     .card .subject b { font-weight:normal; }
@@ -283,10 +283,11 @@
       }
       const name = document.getElementById('revName').value.trim();
       const lessions = document.getElementById('lessions').value.trim();
-      if (!revName) {
+      /*if (!revName) {
         alert('Inserisci il nome.');
         return;
       }
+      */
       if (!lessions) {
         alert('Inserisci il numero di lezioni.');
         return;
