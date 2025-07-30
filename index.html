@@ -21,6 +21,49 @@
   align-items: center;
   gap: 10px;
 }
+.card {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 100%;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  white-space: normal;
+}
+
+.card .header-text,
+.card .subject,
+.card .review-text {
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  white-space: normal;
+}
+
+.card-title, .subject, .review-text {
+  margin: 0 0 8px 0;
+}
+
+.meta, .doc-id {
+  font-size: 0.7em;
+  color: #666;
+}
+.card-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.card-header > div {
+  flex: 1;
+  min-width: 0;
+}
+
+.card-title {
+  font-weight: bold;
+  margin: 0;
+  word-break: break-word;
+  overflow-wrap: break-word;
+  white-space: normal;
+}
     .card .stars { color:#FFD700; margin-left:auto; }
     .card .meta { font-size:0.75em; color:#777; }
     .card .subject { font-size:0.9em; margin:5px 0; }
