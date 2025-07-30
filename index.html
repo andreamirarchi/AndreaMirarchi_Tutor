@@ -118,9 +118,9 @@
       </div>
       <div>
       <label>Quante lezioni hai fatto?</label>
-      <input id="numberLessions" type="number" inputmode="numeric" pattern="[0-9]*" autocomplete="off"/>
+      <input id="numberLessions" type="number" inputmode="numeric" pattern="[0-9]*" autocomplete="off" oninput="this.value = this.value.replace(/[^0-9]/g, '')"/>
       <label>Quante ore totali?</label>
-      <input id="hoursLessions" type="number" inputmode="numeric" pattern="[0-9]*" autocomplete="off"/>
+      <input id="hoursLessions" type="number" inputmode="numeric" pattern="[0-9]*" autocomplete="off" oninput="this.value = this.value.replace(/[^0-9]/g, '')"/>
       </div>
       <label>Recensione</label>
       <textarea id="revText" rows="4"></textarea>
