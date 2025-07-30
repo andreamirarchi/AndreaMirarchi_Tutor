@@ -16,11 +16,11 @@
     .card-header { display:flex; align-items:center; gap:10px; }
     .avatar { width:40px; height:40px; border-radius:50%; object-fit:cover; }
     .card-title { font-weight:bold; margin:0; }
-    .card-header {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
+.card-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
     .card .stars { color:#FFD700; margin-left:auto; }
     .card .meta { font-size:0.75em; color:#777; }
     .card .subject { font-size:0.9em; margin:5px 0; }
@@ -36,10 +36,10 @@
     .star.selected, .star.hover { color:#FFD700; }
     button { cursor:pointer; padding:5px 10px; border:none; background:#007bff; color:#fff; border-radius:3px; }
     button:disabled { background:#aaa; }
-    .reviews {
-      margin-top: 16px;
-    }
-    @media (max-width: 980px) {
+.reviews {
+  margin-top: 16px;
+}
+@media (max-width: 768px) {
   body {
     flex-direction: column;
   }
@@ -63,7 +63,7 @@
     max-width: 150px;
     margin: 0 auto;
   }
- }
+}
   </style>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
@@ -84,7 +84,7 @@
     <div class="reviews" id="reviewsContainer"></div>
   </div>
 
-  <div id="modal">
+  <form id="modal">
     <div class="box">
       <h3>Nuova recensione</h3>
       <label>Nome</label>
@@ -110,14 +110,18 @@
       <div id="officeChoice" style="display:none;">
         <label>Programma Office</label>
         <select id="officeApp">
-          <option>Access</option>
           <option>Word</option>
           <option>Excel</option>
           <option>PowerPoint</option>
+          <option>Access</option>
         </select>
       </div>
+      <div>
       <label>Quante lezioni hai fatto?</label>
-      <input id="lessions" type="text" />
+      <input id="numberLessions" type="number" />
+      <label>Quante ore totali?</label>
+      <input id="hoursLessions" type="number" />
+      </div>
       <label>Recensione</label>
       <textarea id="revText" rows="4"></textarea>
       <div class="actions">
@@ -206,7 +210,7 @@
     <div class="stars" style="margin-left:auto;">
       ${'★'.repeat(r.stars)}${'☆'.repeat(5 - r.stars)}
     </div>
-  <div><strong>Materia:</strong> ${r.subject} (${r.lessions} lezioni)</div>
+  <div><strong>Materia:</strong> ${r.subject} <br>(${r.numberLessions} lezioni, ${r.hoursLessions} ore)</div>
   <p>${r.text}</p>
   <div style="font-size:0.7em; color:#888;">ID: ${doc.id}</div>
 `;
@@ -282,14 +286,18 @@
         return;
       }
       const name = document.getElementById('revName').value.trim();
-      const lessions = document.getElementById('lessions').value.trim();
-      /*if (!revName) {
+      if (!name) {
         alert('Inserisci il nome.');
         return;
       }
-      */
-      if (!lessions) {
+      const numberLessions = document.getElementById('numberLessions').value.trim();
+      if (!numberLessions) {
         alert('Inserisci il numero di lezioni.');
+        return;
+      }
+      const hoursLessions = document.getElementById('hoursLessions').value.trim();
+      if (!hoursLessions) {
+        alert('Inserisci le ore di lezione.');
         return;
       }
       let subject = document.getElementById('revSubject').value;
@@ -305,7 +313,8 @@
           subject,
           text,
           timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-          lessions
+          numberLessions,
+          hoursLessions
         });
         await markCodeUsed(codice);
         alert('Recensione inviata con successo!');
